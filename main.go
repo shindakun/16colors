@@ -73,60 +73,74 @@ func getRaws(cp colorsPack) ([]string, error) {
 		}
 	}
 	if len(raws) == 0 {
-		return nil, errors.New("use fallback.ans")
+		return nil, errors.New("use fallback ansi")
 	}
 
 	return raws, nil
 }
 
-func getPacks() {
-
-}
-
-func main() {
-	fmt.Println("16colorsapi")
-
-	url := fmt.Sprintf("%s/%s/pack?pagesize=%d", apiBase, version, pagesize)
+func getPacks(page int) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s/pack?pagesize=%d&page=%d", apiBase, version, pagesize, page)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	defer res.Body.Close()
 	r, err := io.ReadAll(res.Body)
 	if err != nil {
-		panic(err)
+		return nil, err
+	}
+	return r, nil
+}
+
+func getPack(ran int, c *colorsPacks) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s%s?pagesize=%d", apiBase, version, c.Results[ran].Gallery, pagesize)
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	r, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
+func main() {
+	fmt.Println("Loading random ANSi from 16colo.rs")
+
+	// TODO: add support for ansi fallback
+	// TODO: add support for getting multiple pages of results
+	page := 0
+	r, err := getPacks(page)
+	if err != nil {
+		fmt.Println("use fallback ansi")
+		os.Exit(0)
 	}
 
 	var c colorsPacks
 	json.Unmarshal(r, &c)
 
 	rand.Seed(time.Now().UnixMicro())
-	ran := rand.Intn(pagesize)
+	ran := rand.Intn(len(c.Results))
 
-	url2 := fmt.Sprintf("%s/%s%s?pagesize=%d", apiBase, version, c.Results[ran].Gallery, pagesize)
-
-	req2, err := http.NewRequest(http.MethodGet, url2, nil)
+	r2, err := getPack(ran, &c)
 	if err != nil {
-		fmt.Println("use fallback.ans")
-		os.Exit(0)
-	}
-
-	res2, err := http.DefaultClient.Do(req2)
-	if err != nil {
-		fmt.Println("use fallback.ans")
-		os.Exit(0)
-	}
-
-	defer res.Body.Close()
-	r2, err := io.ReadAll(res2.Body)
-	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
 
@@ -135,39 +149,41 @@ func main() {
 
 	raws, err := getRaws(cp)
 	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
 
 	ran1 := rand.Intn(len(raws))
 
-	url3 := fmt.Sprintf("%s%s/%s/%s", urlBase, c.Results[ran].Gallery, "raw", raws[ran1])
+	url := fmt.Sprintf("%s%s/%s/%s", urlBase, c.Results[ran].Gallery, "raw", raws[ran1])
 
-	fmt.Println(url3)
-
-	req3, err := http.NewRequest(http.MethodGet, url3, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
 
-	res3, err := http.DefaultClient.Do(req3)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
 
-	defer res3.Body.Close()
+	defer res.Body.Close()
 
 	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
 
-	body, err := io.ReadAll(res3.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		fmt.Println("use fallback.ans")
+		fmt.Println("use fallback ansi")
 		os.Exit(0)
 	}
-	os.WriteFile("ansi.ans", body, 0777)
+	err = os.WriteFile("ansi.ans", body, 0777)
+	if err != nil {
+		fmt.Println("use fallback ansi")
+		os.Exit(0)
+	}
 }
