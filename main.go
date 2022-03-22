@@ -17,7 +17,7 @@ var pagesize = 500
 var apiBase = "https://api.16colo.rs"
 var urlBase = "https://16colo.rs"
 
-// var raw = "/raw/"
+var raw = "/raw/"
 var version = "v1"
 
 type colorsPacks struct {
@@ -155,7 +155,7 @@ func main() {
 
 	ran1 := rand.Intn(len(raws))
 
-	url := fmt.Sprintf("%s%s/%s/%s", urlBase, c.Results[ran].Gallery, "raw", raws[ran1])
+	url := fmt.Sprintf("%s%s%s%s", urlBase, c.Results[ran].Gallery, raw, raws[ran1])
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
