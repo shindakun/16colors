@@ -57,7 +57,7 @@ func getRaws(cp colorsPack) ([]string, error) {
 			switch t := v.Interface().(type) {
 			case map[string]interface{}:
 				f := t["file"]
-				r, _ := regexp.Compile(".asc|.ASC|.ans|.ANS")
+				r, _ := regexp.Compile(`\.asc$|\.ASC$|\.ans$|\.ANS$`)
 				for a, b := range f.(map[string]interface{}) {
 					if a == "raw" {
 
