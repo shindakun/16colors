@@ -124,9 +124,20 @@ func main() {
 	fmt.Println("Loading random ANSi from 16colo.rs")
 
 	// TODO: add support for ansi fallback
-	// TODO: add support for getting multiple pages of results
 	page := 0
 	r, err := getPacks(page)
+	if err != nil {
+		fmt.Println("use fallback ansi")
+		os.Exit(0)
+	}
+
+	var cc colorsPacks
+	json.Unmarshal(r, &cc)
+
+	rand.Seed(time.Now().UnixMicro())
+	ran := rand.Intn(cc.Page.Pages)
+
+	r, err = getPacks(ran)
 	if err != nil {
 		fmt.Println("use fallback ansi")
 		os.Exit(0)
@@ -136,7 +147,7 @@ func main() {
 	json.Unmarshal(r, &c)
 
 	rand.Seed(time.Now().UnixMicro())
-	ran := rand.Intn(len(c.Results))
+	ran = rand.Intn(len(c.Results))
 
 	r2, err := getPack(ran, &c)
 	if err != nil {
